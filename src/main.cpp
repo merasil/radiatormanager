@@ -26,6 +26,7 @@ IPAddress subnet;
 IPAddress gw;
 IPAddress dns;
 char mqttsrv[20];
+char mqttname[30];
 char mqttuser[20];
 char mqttpass[20];
 char mqtttopic[TOPIC_MAXLEN];
@@ -91,7 +92,7 @@ void mqttCallback(const char* topic, uint8_t* payload, uint length)
   char tmptopic[TOPIC_MAXLEN + 50];
   for(uint8_t i = 0; i < fm.getFanCount(); ++i)
   {
-    sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/pwm/set");
+    sprintf(tmptopic, "%s/fan%d/pwm/set", mqtttopic, i);
     if(strcmp(topic, tmptopic) == 0)
     {
       char buffer[length+1];
@@ -116,10 +117,10 @@ void mqttPublish()
     uint16_t rpm = fm.getRPM(i);
     uint8_t pwm = fm.getPWM(i);
     sprintf(tmpvalue, "%d", rpm);
-    sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/rpm");
+    sprintf(tmptopic, "%s/fan%d/rpm", mqtttopic, i);
     mqttclient.publish(tmptopic, tmpvalue);
     sprintf(tmpvalue, "%d", pwm);
-    sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/pwm");
+    sprintf(tmptopic, "%s/fan%d/pwm", mqtttopic, i);
     mqttclient.publish(tmptopic, tmpvalue);
   }
 }
@@ -129,7 +130,7 @@ void mqttSubscribe()
   for(uint8_t i = 0; i < fm.getFanCount(); ++i)
   {
     char tmptopic[TOPIC_MAXLEN + 50];
-    sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/pwm/set");
+    sprintf(tmptopic, "%s/fan%d/pwm/set", mqtttopic, i);
     mqttclient.subscribe(tmptopic);
   }
 }
@@ -260,14 +261,17 @@ void setup(void) {
   {
     mqttclient.setServer(mqttsrv, 1883);
     mqttclient.setCallback(mqttCallback);
-    sprintf(mqtttopic, "%s%s", "radiatorfanmanager/", hostname);
+    String tmphostname = hostname;
+    tmphostname.toLowerCase();
+    sprintf(mqttname, "rfm_%s", tmphostname);
+    sprintf(mqtttopic, "radiatorfanmanager/%s", hostname);
     if(!mqttclient.connected())
     {
       t1 = millis();
       Serial.print(F("Trying to connect to MQTT Server... "));
       while(millis() - t1 < 30000)
       {
-        if(mqttclient.connect(hostname, mqttuser, mqttpass))
+        if(mqttclient.connect(mqttname, mqttuser, mqttpass))
         {
           mqttMode = true;
           Serial.println(F("completed!"));
@@ -281,17 +285,19 @@ void setup(void) {
       }
     }
     /* Publish Topics */
-    char tmpip[50];
-    sprintf(tmpip, "%s%s%s", mqtttopic, "/ip/", WiFi.localIP());
-    mqttclient.publish(tmpip, "0");
+    char tmpip[TOPIC_MAXLEN+4];
+    sprintf(tmpip, "%s/ip", mqtttopic);
+    char tmpipchar[ip.toString().length() + 1];
+    ip.toString().toCharArray(tmpipchar, sizeof(tmpipchar));
+    mqttclient.publish(tmpip, tmpipchar);
     for(uint8_t i = 0; i < fm.getFanCount(); ++i)
     {
       char tmptopic[TOPIC_MAXLEN + 50];
-      sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/rpm");
+      sprintf(tmptopic, "%s/fan%d/rpm", mqtttopic, i);
       mqttclient.publish(tmptopic, "0");
-      sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/pwm");
+      sprintf(tmptopic, "%s/fan%d/pwm", mqtttopic, i);
       mqttclient.publish(tmptopic, "0");
-      sprintf(tmptopic, "%s%s%d%s", mqtttopic, "/fan", i, "/pwm/set");
+      sprintf(tmptopic, "%s/fan%d/pwm/set", mqtttopic, i);
       mqttclient.publish(tmptopic, "0");
     }
     mqttSubscribe();
@@ -334,7 +340,7 @@ void loop(void) {
   {
     if(!mqttclient.connected())
     {
-      if(mqttclient.connect(mqttsrv, mqttuser, mqttpass))
+      if(mqttclient.connect(mqttname, mqttuser, mqttpass))
         mqttSubscribe();
     }
     else

@@ -22,7 +22,7 @@ uint16_t FanManager::calcRPM(uint8_t id, typeof(millis()) t)
         fan3_cnt = 0;
         break;
     }
-    return ((60000 / t) * cnt) / 2;
+    return ((60000 / t) * cnt) / 4;
 }
 
 void FanManager::attachFanInterrupt(uint8_t id) {
@@ -59,7 +59,7 @@ bool FanManager::addFan(uint8_t pin_pwm, uint8_t pin_rpm, bool meassureRPM, bool
     m_fans[m_fans_count].reversed = reversed;
     m_fans[m_fans_count].pin_pwm = pin_pwm;
     m_fans[m_fans_count].pin_rpm = pin_rpm;
-    pinMode(pin_rpm, INPUT_PULLUP);
+    pinMode(pin_rpm, INPUT);
     if(meassureRPM)
     {
         m_fans[m_fans_count].meassureRPM = true;
@@ -100,12 +100,12 @@ bool FanManager::setPWM(uint8_t id, uint8_t pwm_perc)
     analogWrite(m_fans[id].pin_pwm, pwm);
 
     // Debugging-Ausgaben
-    Serial.print("Fan ID: ");
-    Serial.println(id);
-    Serial.print("PWM Percentage: ");
-    Serial.println(pwm_perc);
-    Serial.print("Calculated PWM Value: ");
-    Serial.println(pwm);
+    // Serial.print("Fan ID: ");
+    // Serial.println(id);
+    // Serial.print("PWM Percentage: ");
+    // Serial.println(pwm_perc);
+    // Serial.print("Calculated PWM Value: ");
+    // Serial.println(pwm);
 
     return true;
 }
