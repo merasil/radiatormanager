@@ -99,14 +99,6 @@ bool FanManager::setPWM(uint8_t id, uint8_t pwm_perc)
     m_fans[id].curr_pwm = pwm_perc;
     analogWrite(m_fans[id].pin_pwm, pwm);
 
-    // Debugging-Ausgaben
-    // Serial.print("Fan ID: ");
-    // Serial.println(id);
-    // Serial.print("PWM Percentage: ");
-    // Serial.println(pwm_perc);
-    // Serial.print("Calculated PWM Value: ");
-    // Serial.println(pwm);
-
     return true;
 }
 
