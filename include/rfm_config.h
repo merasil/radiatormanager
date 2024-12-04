@@ -36,7 +36,7 @@ String getBuildTimestamp() {
    return YY + MM + DD + "_" + HH + mm;
 }
 
-#define FIRMWARE_VERSION "1.1.0"
+#define FIRMWARE_VERSION "1.2.0"
 #define BUILD_TIMESTAMP getBuildTimestamp()
 
 

@@ -13,7 +13,7 @@
 FanManager fm;
 MQTTManager mm{fm};
 
-static unsigned long lastWiFiCheck = 0;
+unsigned long lastWiFiCheck = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -65,9 +65,27 @@ void loop() {
   if (millis() - lastWiFiCheck >= 30000) {
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi connection lost. Reconnecting...");
+      
       WiFi.disconnect();
-      WiFi.reconnect();
+      delay(1000);
+            
+      if (config.staticIP) {
+          IPAddress ip, subnet, gateway, dns;
+          ip.fromString(config.ip);
+          subnet.fromString(config.subnet);
+          gateway.fromString(config.gateway);
+          dns.fromString(config.dns);
+          WiFi.config(ip, gateway, subnet, dns);
+      }
+      
+      WiFi.begin(config.ssid, config.password);
+
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("WiFi reconnected");
+        Serial.println(WiFi.localIP());
+      }
     }
+    lastWiFiCheck = millis();
   }
   fm.handle();
   server.handleClient();
