@@ -60,6 +60,11 @@ void loop() {
   if (config.mqttEnabled) {
     mm.loop();
   }
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection lost. Reconnecting...");
+    WiFi.disconnect();
+    WiFi.reconnect();
+  }
   fm.handle();
   server.handleClient();
 }
