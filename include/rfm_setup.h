@@ -81,7 +81,6 @@ bool startNormalMode() {
     }
 
     WiFi.setAutoReconnect(true);
-    WiFi.persistent(true);
 
     Serial.println("\nConnected to WiFi");
     Serial.print("IP Address: ");

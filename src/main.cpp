@@ -13,6 +13,8 @@
 FanManager fm;
 MQTTManager mm{fm};
 
+static unsigned long lastWiFiCheck = 0;
+
 void setup() {
   Serial.begin(115200);
 
@@ -60,10 +62,12 @@ void loop() {
   if (config.mqttEnabled) {
     mm.loop();
   }
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi connection lost. Reconnecting...");
-    WiFi.disconnect();
-    WiFi.reconnect();
+  if (millis() - lastWiFiCheck >= 30000) {
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("WiFi connection lost. Reconnecting...");
+      WiFi.disconnect();
+      WiFi.reconnect();
+    }
   }
   fm.handle();
   server.handleClient();
